@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+author: "Alexander G. Foote"
+date: "2025-06-11"
+output: html_document
+---
+
+## R Markdown for Seurat to AnnData Object Conversion
+
+```{r cars}
+seurat <- readRDS("/Volumes/Foote HD/Data/Single-cell/SMART-seq/YS_AF_pool1.2_real/250610_norm_filt_sobj.rds")
+
+DimPlot(seurat, reduction = "umap", label=T, repel=T)
+view(seurat@meta.data)
+```
+
+```{r pressure, echo=FALSE}
+exprs <- GetAssayData(seurat)
+meta <-seurat@meta.data
+feature_meta <- GetAssay(seurat)[[]]
+embedding <- Embeddings(seurat, "umap")
+```
+
+```{r pressure, echo=FALSE}
+library(reticulate)
+reticulate::use_condaenv("/Users/alexanderfoote/dev/src/miniforge3/envs/scanpy", required = TRUE)
+sc <- import("scanpy")
+X <- t(exprs)
+adata = sc$AnnData(X = X, obs = meta, var = feature_meta)
+adata$obsm['X_umap'] = embedding
+```
+
+```{r pressure, echo=FALSE}
+adata$obs
+```
+
+```{r pressure, echo=FALSE}
+sc$pl$umap(adata, color='seurat_clusters', legend_loc='on data')
+```
+
+```{r pressure, echo=FALSE}
+adata$write_h5ad("/Volumes/Foote HD/Data/Single-cell/SMART-seq/YS_AF_pool1.2_real/InitialRawSeuratObject.h5ad")
+```
